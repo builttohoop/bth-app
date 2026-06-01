@@ -1,6 +1,6 @@
 (function(){
   var OWNER_HASH = "660b53b077707bd7221f880993431e1b1ef0cb4ff7670320a169c6a068817f62";
-  var PRODUCT_PERMALINK = "thxqs";
+  var PRODUCT_ID = "n7oKRu8e3hy8pVr1mP4WBw==";
   var GUMROAD_URL = "https://builttohoop.gumroad.com/l/thxqs";
   var currentScreen = "home";
 
@@ -447,7 +447,7 @@
     result.innerHTML = '<div class="app-muted">Checking Gumroad...</div>';
     try {
       var body = new URLSearchParams();
-      body.set("product_permalink", PRODUCT_PERMALINK);
+      body.set("product_id", PRODUCT_ID);
       body.set("license_key", key);
       body.set("increment_uses_count", "false");
       var response = await fetch("https://api.gumroad.com/v2/licenses/verify", {method:"POST", headers:{"Content-Type":"application/x-www-form-urlencoded"}, body:body.toString()});
@@ -456,7 +456,7 @@
         appSave("bth_member_access", {
           verifiedAt:new Date().toISOString(),
           licenseLast4:key.slice(-4),
-          productPermalink:PRODUCT_PERMALINK,
+          productId:PRODUCT_ID,
           email:data.purchase && data.purchase.email ? data.purchase.email : ""
         });
         currentScreen = "home";

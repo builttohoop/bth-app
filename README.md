@@ -7,12 +7,13 @@ Static GitHub Pages app for Built to Hoop.
 - Local scaffold path: `C:\Users\built\Documents\Codex\2026-05-20\files-mentioned-by-the-user-bth\bth-app`
 - Source base: `C:\Users\built\BTH-website-fix\bth-operator-v2.html`
 - Source SHA256: `0AED70D5E3BB0FFDA2273F9F481A1A9970136AF0F8441E7EB95D084B0A75395F`
-- Pages custom domain: `app.builttohoop.com`
+- Pages custom domain: `app.built-to-hoop.com`
 
 ## Current V1 Build
 
 - Free mode: 5-day reset, locked library previews, upgrade CTA.
 - Member mode: Gumroad license key unlock, localStorage persistence, in-app onboarding, library renderer.
+- Gumroad product ID used for license verification: `n7oKRu8e3hy8pVr1mP4WBw==`
 - Owner mode: hashed owner passphrase gate, then the preserved operator tools from `bth-operator-v2.html`.
 - Library model: programs -> phases -> weeks -> days -> exercises, with `videoUrl` fields ready for later.
 - Content gaps: see `CONTENT-GAPS.md`.
@@ -36,7 +37,7 @@ git push -u origin main
 6. In DNS: add a CNAME record:
    - Name/Host: `app`
    - Target: `builttohoop.github.io`
-7. In GitHub Pages custom domain, enter `app.builttohoop.com`.
+7. In GitHub Pages custom domain, enter `app.built-to-hoop.com`.
 8. After DNS verifies, enable Enforce HTTPS.
 
 ## Known V1 Constraints

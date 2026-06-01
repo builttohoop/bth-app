@@ -19,7 +19,7 @@ git push -u origin main
 7. DNS registrar -> add CNAME:
    - Host/Name: `app`
    - Target/Value: `builttohoop.github.io`
-8. GitHub Pages -> Custom domain: `app.builttohoop.com`.
+8. GitHub Pages -> Custom domain: `app.built-to-hoop.com`.
 9. After DNS verifies, enable Enforce HTTPS.
 
 ## Gumroad License Keys + Redirect
@@ -28,10 +28,11 @@ git push -u origin main
 2. Product settings -> License keys.
 3. Enable unique license key per sale.
 4. Save.
-5. Post-purchase redirect or receipt instructions:
-   - URL: `https://app.builttohoop.com`
+5. Confirm the license key module shows product ID `n7oKRu8e3hy8pVr1mP4WBw==`.
+6. Post-purchase redirect or receipt instructions:
+   - URL: `https://app.built-to-hoop.com`
    - Instruction: "Open the BTH app and paste the license key from this receipt to unlock the member library."
-6. Save and run one test purchase/license check before launch.
+7. Save and run one test purchase/license check before launch.
 
 ## Zapier: Buyer Exits Free Reset
 
