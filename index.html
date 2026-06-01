@@ -5,15 +5,16 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="BTH Operator">
+  <meta name="apple-mobile-web-app-title" content="BTH App">
   <meta name="theme-color" content="#0a0a0a">
-  <title>BTH Operator</title>
+  <title>BTH App</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/bth-app-v1.css">
   <script>
   (function(){
-    var svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><rect width="128" height="128" rx="24" fill="#0a0a0a"/><circle cx="64" cy="64" r="42" fill="#c9a84c"/><path d="M64 22c14 21 14 63 0 84M22 64h84M34 34c18 14 42 14 60 0M34 94c18-14 42-14 60 0" fill="none" stroke="#0a0a0a" stroke-width="8" stroke-linecap="round"/></svg>';
-    var m={name:'BTH Operator',short_name:'BTH',start_url:'.',display:'standalone',background_color:'#0a0a0a',theme_color:'#0a0a0a',icons:[{src:'data:image/svg+xml,'+encodeURIComponent(svg),sizes:'any',type:'image/svg+xml'}]};
+    var svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><rect width="128" height="128" rx="24" fill="#0a0a0a"/><circle cx="64" cy="64" r="42" fill="#E6A800"/><path d="M64 22c14 21 14 63 0 84M22 64h84M34 34c18 14 42 14 60 0M34 94c18-14 42-14 60 0" fill="none" stroke="#0a0a0a" stroke-width="8" stroke-linecap="round"/></svg>';
+    var m={name:'BTH App',short_name:'BTH',start_url:'.',display:'standalone',background_color:'#0a0a0a',theme_color:'#0a0a0a',icons:[{src:'data:image/svg+xml,'+encodeURIComponent(svg),sizes:'any',type:'image/svg+xml'}]};
     var b=new Blob([JSON.stringify(m)],{type:'application/json'});
     var l=document.createElement('link');l.rel='manifest';l.href=URL.createObjectURL(b);
     document.head.appendChild(l);
@@ -518,5 +519,6 @@ function sendCheckIn(){
 }
 renderToday();
 </script>
+<script src="assets/bth-app-v1.js"></script>
 </body>
 </html>

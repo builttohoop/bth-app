@@ -9,6 +9,15 @@ Static GitHub Pages app for Built to Hoop.
 - Source SHA256: `0AED70D5E3BB0FFDA2273F9F481A1A9970136AF0F8441E7EB95D084B0A75395F`
 - Pages custom domain: `app.builttohoop.com`
 
+## Current V1 Build
+
+- Free mode: 5-day reset, locked library previews, upgrade CTA.
+- Member mode: Gumroad license key unlock, localStorage persistence, in-app onboarding, library renderer.
+- Owner mode: hashed owner passphrase gate, then the preserved operator tools from `bth-operator-v2.html`.
+- Library model: programs -> phases -> weeks -> days -> exercises, with `videoUrl` fields ready for later.
+- Content gaps: see `CONTENT-GAPS.md`.
+- Ty setup paths: see `TY-CLICK-PATHS.md`.
+
 ## Ty Setup Steps
 
 1. Create a new GitHub repo under `builttohoop` named `bth-app`.
