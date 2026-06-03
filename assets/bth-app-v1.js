@@ -3,6 +3,83 @@
   var PRODUCT_ID = "n7oKRu8e3hy8pVr1mP4WBw==";
   var GUMROAD_URL = "https://builttohoop.gumroad.com/l/thxqs";
   var currentScreen = "home";
+  var CONTENT_CACHE_KEY = "bth_content_cache_v1";
+  var APP_STATE_KEY = "bth_app_state_v17";
+  var librarySearch = "";
+  var tourIndex = 0;
+  var intakeIndex = 0;
+  var reminderTimer = null;
+  var lastReminderDayId = "";
+
+  var APP_CONTENT = {
+    updates: [
+      {
+        id: "welcome-home",
+        date: "2026-06-03",
+        title: "The app is live",
+        body: "BTH now has a home. Free reset, member unlock, and the library all run through the app.",
+        tag: "App",
+        pinned: true
+      }
+    ],
+    drops: [],
+    clothes: [],
+    affiliate: {
+      headline: "Put people on. Get paid.",
+      body: "Know a hooper who needs this? Send them in. You earn $10 for every paid membership you bring - and when you hit 10, that is an extra $50 on top. Ten paid = $150.",
+      terms: {perReferral:10, bonus:50, bonusAt:10},
+      ctaLabel: "Join the affiliate program",
+      formUrl: ""
+    }
+  };
+
+  var CONTENT_FILES = {
+    updates: "content/updates.json",
+    drops: "content/drops.json",
+    clothes: "content/clothes.json",
+    affiliate: "content/affiliate.json"
+  };
+
+  var ONBOARDING_STEPS = [
+    "Welcome to Built to Hoop. This is your home now - training, updates, drops, all in one place. 20 seconds and you are in.",
+    "This is your day. Open the app, see what is next, hit it. No guessing.",
+    "Your library lives in Train - Restore, Rebuild, and your add-on tracks. Everything is built to keep you on the court.",
+    "Updates and Drops are where new work and new gear show up. Check in - we keep this moving."
+  ];
+
+  var INTAKE_QUESTIONS = [
+    {id:"firstName", type:"text", label:"What is your name?"},
+    {id:"years", type:"choice", label:"How long you been hooping?", options:["Under 5","5-15","15+ years"]},
+    {id:"goal", type:"choice", label:"What are you here for?", options:["Get my bounce back","Stay healthy & keep playing","Get stronger","Move better"]},
+    {id:"nagging", type:"choice", label:"Anything nagging you right now?", options:["Knees","Ankles","Hips","Back","Nothing major"]},
+    {id:"days", type:"choice", label:"Days a week you can train?", options:["2","3","4+"]}
+  ];
+
+  var GOAL_SUBLINES = {
+    "Get my bounce back": "Today is about getting your pop back.",
+    "Stay healthy & keep playing": "Today is about staying on the court.",
+    "Get stronger": "Today we build.",
+    "Move better": "Today we clean up how you move."
+  };
+
+  var GOAL_TRACKS = {
+    "Get my bounce back": "performance-track",
+    "Stay healthy & keep playing": "foundation-month",
+    "Get stronger": "operator-phase-2-rebuild",
+    "Move better": "foundation-month"
+  };
+
+  var NAGGING_TRACKS = {
+    "Knees": "knee-protection",
+    "Ankles": "ankle-rebuild",
+    "Hips": "hip-reset",
+    "Back": "recovery-system"
+  };
+
+  var REMINDER_COPY = {
+    title: "Built to Hoop",
+    body: "Stay ready - your next session's waiting."
+  };
 
   function appEsc(value){
     return String(value == null ? "" : value).replace(/[&<>"']/g, function(ch){
@@ -25,6 +102,254 @@
 
   function appRemove(key){
     try { localStorage.removeItem(key); } catch (e) {}
+  }
+
+  function getAppState(){
+    var state = appLoad(APP_STATE_KEY, {});
+    state.intake = state.intake || {};
+    state.seenUpdateIds = state.seenUpdateIds || [];
+    state.training = state.training || {};
+    state.training.completedDayIds = state.training.completedDayIds || [];
+    state.notifyMe = state.notifyMe || [];
+    return state;
+  }
+
+  function saveAppState(state){
+    appSave(APP_STATE_KEY, state);
+  }
+
+  function patchAppState(patch){
+    var state = getAppState();
+    Object.keys(patch).forEach(function(key){ state[key] = patch[key]; });
+    saveAppState(state);
+    return state;
+  }
+
+  function getActiveDayId(){
+    var now = new Date();
+    var rolloverHour = 4;
+    if (now.getHours() < rolloverHour) {
+      now.setDate(now.getDate() - 1);
+    }
+    var y = now.getFullYear();
+    var m = String(now.getMonth() + 1).padStart(2, "0");
+    var d = String(now.getDate()).padStart(2, "0");
+    return y + "-" + m + "-" + d;
+  }
+
+  function getIntake(){
+    return getAppState().intake || {};
+  }
+
+  function cleanFirstName(name){
+    return String(name || "").trim().split(/\s+/)[0] || "";
+  }
+
+  function getStoredTheme(){
+    var state = getAppState();
+    if (state.theme === "light" || state.theme === "dark") return state.theme;
+    return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  }
+
+  function getReducedMotion(){
+    var state = getAppState();
+    if (typeof state.reduceMotion === "boolean") return state.reduceMotion;
+    return !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  }
+
+  function applyAppPrefs(){
+    var theme = getStoredTheme();
+    document.body.classList.toggle("theme-dark", theme === "dark");
+    document.body.classList.toggle("theme-light", theme !== "dark");
+    document.body.classList.toggle("reduce-motion", getReducedMotion());
+  }
+
+  function setTheme(theme){
+    patchAppState({theme:theme === "dark" ? "dark" : "light"});
+    applyAppPrefs();
+    renderBthApp();
+  }
+
+  function setReduceMotion(value){
+    patchAppState({reduceMotion:!!value});
+    applyAppPrefs();
+    renderBthApp();
+  }
+
+  function mergeContentCache(cache){
+    if (!cache || typeof cache !== "object") return;
+    ["updates","drops","clothes","affiliate"].forEach(function(key){
+      if (cache[key]) APP_CONTENT[key] = cache[key];
+    });
+  }
+
+  function loadCachedContent(){
+    mergeContentCache(appLoad(CONTENT_CACHE_KEY, null));
+  }
+
+  function loadContent(){
+    loadCachedContent();
+    return Promise.all(Object.keys(CONTENT_FILES).map(function(key){
+      return fetch(CONTENT_FILES[key] + "?v=" + Date.now(), {cache:"no-store"})
+        .then(function(response){
+          if (!response.ok) throw new Error(key + " " + response.status);
+          return response.json();
+        })
+        .then(function(data){ APP_CONTENT[key] = data; })
+        .catch(function(){});
+    })).then(function(){
+      appSave(CONTENT_CACHE_KEY, APP_CONTENT);
+      renderBthApp();
+    });
+  }
+
+  function getUpdatesNewestFirst(){
+    return (APP_CONTENT.updates || []).slice().sort(function(a,b){
+      if (!!a.pinned !== !!b.pinned) return a.pinned ? -1 : 1;
+      return String(b.date || "").localeCompare(String(a.date || ""));
+    });
+  }
+
+  function unreadUpdateCount(){
+    var seen = getAppState().seenUpdateIds || [];
+    return (APP_CONTENT.updates || []).filter(function(item){
+      return item && item.id && seen.indexOf(item.id) === -1;
+    }).length;
+  }
+
+  function markUpdatesSeen(){
+    var state = getAppState();
+    var seen = state.seenUpdateIds || [];
+    (APP_CONTENT.updates || []).forEach(function(item){
+      if (item && item.id && seen.indexOf(item.id) === -1) seen.push(item.id);
+    });
+    state.seenUpdateIds = seen;
+    saveAppState(state);
+  }
+
+  function getRecommendedProgram(){
+    var intake = getIntake();
+    var byNagging = NAGGING_TRACKS[intake.nagging];
+    var byGoal = GOAL_TRACKS[intake.goal];
+    var id = byNagging || byGoal || "foundation-month";
+    return BTH_LIBRARY.filter(function(program){ return program.id === id; })[0] || BTH_LIBRARY[0];
+  }
+
+  function getContinueTarget(){
+    var state = getAppState();
+    if (state.training && state.training.lastProgramId) {
+      var saved = BTH_LIBRARY.filter(function(program){ return program.id === state.training.lastProgramId; })[0];
+      if (saved) return saved;
+    }
+    return getRecommendedProgram();
+  }
+
+  function makeDayId(programId, week, day){
+    return [programId, "w" + week, "d" + day].join("-");
+  }
+
+  function isDayDone(dayId){
+    return (getAppState().training.completedDayIds || []).indexOf(dayId) !== -1;
+  }
+
+  function toggleDayDone(dayId, programId, week, day){
+    var state = getAppState();
+    var completed = state.training.completedDayIds || [];
+    var idx = completed.indexOf(dayId);
+    if (idx === -1) completed.push(dayId);
+    else completed.splice(idx, 1);
+    state.training.completedDayIds = completed;
+    state.training.lastProgramId = programId;
+    state.training.lastWeek = week;
+    state.training.lastDay = day;
+    state.training.lastOperatorDayId = getActiveDayId();
+    saveAppState(state);
+    renderBthApp();
+  }
+
+  function setLibrarySearch(value){
+    librarySearch = String(value || "");
+    renderBthApp();
+  }
+
+  function jumpDay(dayId){
+    var node = document.getElementById(dayId);
+    if (node) node.scrollIntoView({behavior:getReducedMotion() ? "auto" : "smooth", block:"start"});
+  }
+
+  function hasCompletedOnboarding(){
+    return !!appLoad("bth_onboarding_complete", false);
+  }
+
+  function shouldShowOnboarding(){
+    return !hasCompletedOnboarding() && currentScreen !== "account" && currentScreen !== "settings";
+  }
+
+  function resetOnboarding(){
+    tourIndex = 0;
+    intakeIndex = 0;
+    appSave("bth_intro_done", false);
+    appSave("bth_onboarding_complete", false);
+    currentScreen = "home";
+    renderBthApp();
+  }
+
+  function showColdOpen(){
+    if (getReducedMotion()) return;
+    var seen = !!appLoad("bth_cold_open_seen", false);
+    var overlay = document.createElement("div");
+    overlay.id = "bth-cold-open";
+    overlay.innerHTML = '<button type="button" class="cold-skip" aria-label="Skip intro">Skip</button><div class="cold-mark">Built to Hoop</div><div class="cold-line">Stay Ready</div>';
+    document.body.appendChild(overlay);
+    function close(){
+      overlay.classList.add("done");
+      window.setTimeout(function(){ if (overlay.parentNode) overlay.parentNode.removeChild(overlay); }, 220);
+    }
+    overlay.querySelector("button").onclick = close;
+    window.setTimeout(close, seen ? 800 : 1400);
+    appSave("bth_cold_open_seen", true);
+  }
+
+  function requestNotificationPermission(){
+    if (!("Notification" in window)) {
+      window.alert("This browser does not support notifications.");
+      return;
+    }
+    Notification.requestPermission().then(function(){
+      renderBthApp();
+    });
+  }
+
+  function fireReminder(){
+    if (!("Notification" in window) || Notification.permission !== "granted") return;
+    try {
+      new Notification(REMINDER_COPY.title, {body:REMINDER_COPY.body, tag:"bth-reminder"});
+      lastReminderDayId = getActiveDayId();
+    } catch (e) {}
+  }
+
+  function reminderTick(){
+    var state = getAppState();
+    if (state.remindersOff) return;
+    if (document.hidden) return;
+    var dayId = getActiveDayId();
+    var last = state.lastReminderDayId || lastReminderDayId;
+    if (last === dayId) return;
+    if (!("Notification" in window) || Notification.permission !== "granted") return;
+    state.lastReminderDayId = dayId;
+    saveAppState(state);
+    fireReminder();
+  }
+
+  function startReminderLoop(){
+    if (reminderTimer) return;
+    reminderTimer = window.setInterval(reminderTick, 30000);
+    document.addEventListener("visibilitychange", reminderTick);
+  }
+
+  function registerServiceWorker(){
+    if (!("serviceWorker" in navigator)) return;
+    navigator.serviceWorker.register("sw.js").catch(function(){});
   }
 
   function getMode(){
@@ -279,15 +604,19 @@
 
   function renderNav(mode){
     var nav = document.getElementById("bth-app-nav");
+    var unread = unreadUpdateCount();
     var items = [
       ["home","Home","BTH"],
       ["reset","Reset","5"],
-      ["library","Library","LIB"],
+      ["library","Train","LIB"],
+      ["updates","Updates", unread ? String(unread) : "UP"],
+      ["settings","Settings","SET"],
       ["account","Access","KEY"]
     ];
     if (mode === "owner") items.push(["owner","Owner","TY"]);
     nav.innerHTML = items.map(function(item){
-      return '<button class="app-nav-btn '+(currentScreen===item[0]?'active':'')+'" data-screen="'+item[0]+'"><span class="app-nav-icon">'+item[2]+'</span><span class="app-nav-label">'+item[1]+'</span></button>';
+      var hasBadge = item[0] === "updates" && unread > 0;
+      return '<button class="app-nav-btn '+(currentScreen===item[0]?'active':'')+'" data-screen="'+item[0]+'" aria-label="'+appEsc(item[1])+'"><span class="app-nav-icon '+(hasBadge?'has-badge':'')+'">'+appEsc(item[2])+'</span><span class="app-nav-label">'+appEsc(item[1])+'</span></button>';
     }).join("");
     Array.prototype.forEach.call(nav.querySelectorAll("[data-screen]"), function(button){
       button.onclick = function(){
@@ -303,13 +632,28 @@
   }
 
   function renderHome(mode){
-    var html = appHero("The App Becomes the Home", "Train, reset, unlock the library, and keep your body ready to hoop without breaking down.", [mode.toUpperCase(), "Text-first v1", "Local progress"]);
+    var intake = getIntake();
+    var firstName = cleanFirstName(intake.firstName);
+    var greeting = firstName ? "Let's work, " + firstName + "." : "Let's work.";
+    var subline = GOAL_SUBLINES[intake.goal] || "Open the app, see what is next, hit it.";
+    var recommended = getRecommendedProgram();
+    var continueTarget = getContinueTarget();
+    var updates = getUpdatesNewestFirst().slice(0, 2);
+    var html = appHero(greeting, subline, [mode.toUpperCase(), intake.days ? intake.days + " days/week" : "Set your week", "Local progress"]);
+    html += '<div class="app-card app-lift-card"><div class="app-card-meta">Continue</div><div class="app-card-title">'+appEsc(continueTarget.title)+'</div><div class="app-copy">Pick up from your current training lane. State stays on this device and follows the BTH operator-day model.</div><button class="btn-primary" onclick="BTHApp.go(\'library\')">Open Train</button></div>';
+    html += '<div class="app-two app-home-actions"><button class="btn-secondary" onclick="BTHApp.go(\'updates\')">BTH Updates '+(unreadUpdateCount()?'<span class="button-badge">'+unreadUpdateCount()+'</span>':'')+'</button><button class="btn-secondary" onclick="BTHApp.go(\'settings\')">Theme & Motion</button></div>';
+    html += '<div class="app-card"><div class="app-card-meta">Recommended</div><div class="app-card-title">'+appEsc(recommended.title)+'</div><div class="app-copy">'+appEsc(recommended.description)+'</div><button class="btn-secondary" onclick="BTHApp.go(\'library\')">View track</button></div>';
+    if (updates.length) {
+      html += '<div class="app-card"><div class="app-card-meta">Latest</div><div class="app-card-title">BTH Updates</div>'+updates.map(function(item){
+        return '<div class="update-tease"><span>'+appEsc(item.tag || "Update")+'</span><strong>'+appEsc(item.title)+'</strong></div>';
+      }).join("")+'<button class="btn-secondary" onclick="BTHApp.go(\'updates\')">Open updates</button></div>';
+    }
     if (mode === "free") {
       html += '<div class="app-card"><div class="app-card-title">Start with the free reset</div><div class="app-copy">Five days. Hips, ankles, knees, core, then power. No fluff - just the reset work that gets your body moving right again.</div><button class="btn-primary" style="margin-top:12px;" onclick="BTHApp.go(\'reset\')">Open the reset</button></div>';
+      html += '<div class="app-card why-rise"><div class="app-card-title">Why Rise</div><div class="app-copy">The full library, every track, new work each month - for less than one training session. Built to keep you hooping, not just dunking.</div><a class="btn-primary" href="'+GUMROAD_URL+'">Unlock the full library</a></div>';
       html += '<div class="app-card"><div class="app-card-title">Already bought BTH Rise?</div><div class="app-copy">Enter the license key from your Gumroad receipt and unlock the full library on this device.</div><button class="btn-secondary" onclick="BTHApp.go(\'account\')">Enter license key</button></div>';
       html += renderLockedPreview();
     } else {
-      html += renderOnboarding(mode);
       html += '<div class="app-two"><button class="btn-primary" onclick="BTHApp.go(\'library\')">Open Library</button><button class="btn-secondary" onclick="BTHApp.go(\'reset\')">Open Reset</button></div>';
       if (mode === "owner") html += '<div class="app-card"><div class="app-card-title">Owner tools</div><div class="app-copy">Ty-only operator tools are available behind owner mode.</div><button class="btn-primary" onclick="BTHApp.openOwner()">Open owner tools</button></div>';
     }
@@ -317,17 +661,29 @@
   }
 
   function renderOnboarding(mode){
-    if (appLoad("bth_onboarding_done", false)) {
-      return '<div class="app-card"><div class="app-card-title">You are in</div><div class="app-copy">Your library is unlocked. Start with Foundation Month, then move into the performance track once the base is built.</div></div>';
+    if (appLoad("bth_intro_done", false)) return renderIntake();
+    var copy = ONBOARDING_STEPS[tourIndex] || ONBOARDING_STEPS[0];
+    return '<div class="onboarding-shell">'+
+      appHero("Built to Hoop", "Stay Ready", ["Step "+(tourIndex+1)+" of "+ONBOARDING_STEPS.length])+
+      '<div class="app-card cinematic-card"><div class="app-card-title">'+appEsc(copy)+'</div><div class="tour-progress">'+ONBOARDING_STEPS.map(function(_,i){return '<span class="'+(i===tourIndex?'active':'')+'"></span>';}).join("")+'</div><div class="app-two"><button class="btn-secondary" onclick="BTHApp.skipOnboarding()">Skip</button><button class="btn-primary" onclick="BTHApp.nextTour()">Next</button></div></div>'+
+    '</div>';
+  }
+
+  function renderIntake(){
+    var question = INTAKE_QUESTIONS[intakeIndex] || INTAKE_QUESTIONS[0];
+    var intake = getIntake();
+    var html = appHero("Set your app", "Answer quick. The Home screen starts moving around you.", ["Question "+(intakeIndex+1)+" of "+INTAKE_QUESTIONS.length]);
+    html += '<div class="app-card"><label class="app-card-title" for="intake-input">'+appEsc(question.label)+'</label>';
+    if (question.type === "text") {
+      html += '<div class="input-stack"><input id="intake-input" class="app-input" autocomplete="given-name" value="'+appEsc(intake[question.id] || "")+'" placeholder="First name"><button class="btn-primary" onclick="BTHApp.saveTextAnswer()">Next</button></div>';
+    } else {
+      html += '<div class="choice-grid">'+(question.options || []).map(function(option){
+        var active = intake[question.id] === option;
+        return '<button type="button" class="choice-chip '+(active?'active':'')+'" onclick="BTHApp.saveChoiceAnswer(\''+appEsc(question.id)+'\', \''+appEsc(option).replace(/'/g, "\\'")+'\')">'+appEsc(option)+'</button>';
+      }).join("")+'</div>';
     }
-    var steps = [
-      ["Welcome in", "BTH is built around the way pickup actually loads your body. Restore first. Rebuild next. Then rise."],
-      ["How the library works", "Foundation Month starts with Restore weeks 1-2 and Rebuild weeks 3-4. Add-ons sit beside the main path."],
-      ["Start Day 1", "Do not skip the base. Your job is to stack clean days and keep coming back."]
-    ];
-    return '<div class="app-card"><div class="app-card-title">Member onboarding</div><div class="app-card-meta">First run</div>'+steps.map(function(step,i){
-      return '<div class="day-block"><div class="reset-day-number">0'+(i+1)+'</div><div class="day-title">'+appEsc(step[0])+'</div><div class="app-muted">'+appEsc(step[1])+'</div></div>';
-    }).join("")+'<button class="btn-primary" onclick="BTHApp.finishOnboarding()">Start Day 1</button></div>';
+    html += '<div class="app-muted">Stored locally on this device. No account database in v1.</div></div>';
+    return html;
   }
 
   function renderLockedPreview(){
@@ -345,13 +701,20 @@
 
   function renderLibrary(mode){
     var unlocked = isUnlocked();
-    var html = appHero("BTH Library", unlocked ? "Full library access is on for this device." : "Preview the system. Unlock with your Gumroad license key.", [unlocked ? "Unlocked" : "Locked previews", "videoUrl ready"]);
-    html += BTH_LIBRARY.map(function(program){
+    var query = librarySearch.trim().toLowerCase();
+    var programs = BTH_LIBRARY.filter(function(program){
+      if (!query) return true;
+      return [program.title, program.description, program.id].join(" ").toLowerCase().indexOf(query) !== -1;
+    });
+    var continueTarget = getContinueTarget();
+    var html = appHero("Train", unlocked ? "Full library access is on for this device." : "Preview the system. Unlock with your Gumroad license key.", [unlocked ? "Unlocked" : "Locked previews", "Search ready"]);
+    html += '<div class="app-card train-control"><div class="app-card-meta">Resume</div><div class="app-card-title">'+appEsc(continueTarget.title)+'</div><div class="app-copy">'+appEsc(continueTarget.description)+'</div><div class="input-stack"><label class="sr-only" for="library-search-input">Search training library</label><input id="library-search-input" class="app-input" value="'+appEsc(librarySearch)+'" placeholder="Search Train" oninput="BTHApp.setLibrarySearch(this.value)"></div></div>';
+    html += programs.map(function(program){
       var locked = !unlocked && program.tier === "member";
       var status = program.status === "available" ? "Available" : program.status === "partial" ? "Partial" : "TODO: content";
       var body = '<div class="app-card"><div class="app-card-title">'+appEsc(program.title)+'</div><div class="app-card-meta">'+appEsc(status)+' - '+appEsc(program.source)+'</div><div class="app-copy">'+appEsc(program.description)+'</div>';
       if (locked) {
-        body += '<div class="locked-panel"><strong>Locked.</strong> Join BTH Rise or enter your Gumroad license key to open the full cards.</div>';
+        body += '<div class="locked-panel"><strong>Locked.</strong> Join BTH Rise or enter your Gumroad license key to open the full cards.<div class="app-copy"><strong>Why Rise:</strong> The full library, every track, new work each month - built to keep you hooping, not just dunking.</div></div>';
       } else {
         body += renderProgram(program);
       }
@@ -363,15 +726,27 @@
   }
 
   function renderProgram(program){
-    return '<div class="program-block">'+(program.phases||[]).map(function(phase){
+    var jumps = [];
+    (program.phases || []).forEach(function(phase){
+      (phase.weeks || []).forEach(function(week){
+        (week.days || []).forEach(function(day){
+          jumps.push({id:makeDayId(program.id, week.week, day.day), label:"W"+week.week+" D"+day.day});
+        });
+      });
+    });
+    return '<div class="program-block">'+(jumps.length?'<div class="program-jump" aria-label="Training day quick jump">'+jumps.map(function(jump){
+      return '<button type="button" onclick="BTHApp.jumpDay(\''+appEsc(jump.id)+'\')">'+appEsc(jump.label)+'</button>';
+    }).join("")+'</div>':'')+(program.phases||[]).map(function(phase){
       return '<div class="program-phase">'+appEsc(phase.title)+'</div>'+(phase.weeks||[]).map(function(week){
-        return '<div class="day-block"><div class="day-title">Week '+appEsc(week.week)+' - '+appEsc(week.title)+'</div>'+(week.intent?'<div class="app-muted">'+appEsc(week.intent)+'</div>':'')+(week.days||[]).map(renderDay).join("")+'</div>';
+        return '<div class="week-block"><div class="day-title">Week '+appEsc(week.week)+' - '+appEsc(week.title)+'</div>'+(week.intent?'<div class="app-muted">'+appEsc(week.intent)+'</div>':'')+(week.days||[]).map(function(day){ return renderDay(day, program.id, week.week); }).join("")+'</div>';
       }).join("");
     }).join("")+'</div>';
   }
 
-  function renderDay(day){
-    return '<div class="day-block"><div class="reset-day-number">Day '+appEsc(day.day)+'</div><div class="day-title">'+appEsc(day.title)+'</div><div class="app-muted">'+appEsc(day.focus || "")+'</div>'+renderExercises(day.exercises || [])+(day.finisher?'<div class="locked-panel"><strong>'+appEsc(day.finisher.title)+'</strong><div class="app-muted">'+appEsc(day.finisher.description)+' - '+appEsc(day.finisher.prescription)+'</div></div>':'')+'</div>';
+  function renderDay(day, programId, week){
+    var dayId = makeDayId(programId, week, day.day);
+    var done = isDayDone(dayId);
+    return '<details class="day-block '+(done?'day-done':'')+'" id="'+appEsc(dayId)+'" '+(done?'':'open')+'><summary><span><span class="reset-day-number">Day '+appEsc(day.day)+'</span><span class="day-title">'+appEsc(day.title)+'</span></span><button type="button" class="day-done-btn" onclick="event.preventDefault(); BTHApp.toggleDayDone(\''+appEsc(dayId)+'\', \''+appEsc(programId)+'\', \''+appEsc(week)+'\', \''+appEsc(day.day)+'\')">'+(done?'Done':'Mark done')+'</button></summary><div class="app-muted">'+appEsc(day.focus || "")+'</div>'+renderExercises(day.exercises || [])+(day.finisher?'<div class="locked-panel"><strong>'+appEsc(day.finisher.title)+'</strong><div class="app-muted">'+appEsc(day.finisher.description)+' - '+appEsc(day.finisher.prescription)+'</div></div>':'')+'</details>';
   }
 
   function renderExercises(exercises){
@@ -380,6 +755,37 @@
       var dose = ex.prescription || ((ex.sets || "") + (ex.reps ? " x " + ex.reps : ""));
       return '<div class="exercise-line '+(isTodo?'todo-content':'')+'"><div class="exercise-name">'+appEsc(ex.name)+'</div><div class="exercise-dose">'+appEsc(dose)+'</div>'+((ex.cues||[]).length?'<div class="app-muted">'+(ex.cues||[]).map(appEsc).join(" ")+'</div>':'')+(ex.videoUrl?'<a href="'+appEsc(ex.videoUrl)+'">Video</a>':'')+'</div>';
     }).join("");
+  }
+
+  function renderUpdates(){
+    var updates = getUpdatesNewestFirst();
+    var permission = "Notification" in window ? Notification.permission : "unsupported";
+    var html = appHero("BTH Updates", "The in-app broadcast channel. New work, app notes, and BTH moves live here first.", ["BTH only", "Unread saved"]);
+    html += '<div class="app-card"><div class="app-card-title">Reminders</div><div class="app-copy">'+appEsc(REMINDER_COPY.body)+'</div><div class="app-muted">Foreground reminders fire while the app is open or recently used. True background push needs a deeper backend later.</div>';
+    if (permission === "granted") html += '<div class="app-success">Notifications are allowed on this device.</div>';
+    else if (permission === "denied") html += '<div class="app-error">Notifications are blocked in this browser. You can still use the Updates feed.</div>';
+    else if (permission === "unsupported") html += '<div class="app-muted">This browser does not support notifications.</div>';
+    else html += '<button class="btn-secondary" onclick="BTHApp.requestNotifications()">Allow reminders</button>';
+    html += '</div>';
+    html += updates.map(function(item){
+      return '<article class="app-card update-card '+(item.pinned?'pinned':'')+'"><div class="app-card-meta">'+appEsc(item.tag || "Update")+' - '+appEsc(item.date || "")+'</div><div class="app-card-title">'+appEsc(item.title)+'</div><div class="app-copy">'+appEsc(item.body)+'</div>'+(item.pinned?'<span class="app-pill">Pinned</span>':'')+'</article>';
+    }).join("") || '<div class="app-card"><div class="app-card-title">No updates yet</div><div class="app-copy">When BTH has something worth saying, it will live here.</div></div>';
+    return html;
+  }
+
+  function renderSettings(){
+    var state = getAppState();
+    var theme = getStoredTheme();
+    var motion = getReducedMotion();
+    var html = appHero("Settings", "Theme, motion, and first-run setup.", [theme === "dark" ? "Dark" : "Light", motion ? "Motion off" : "Motion on"]);
+    html += '<div class="app-card"><div class="app-card-title">Theme</div><div class="segmented-control" role="group" aria-label="Theme"><button class="'+(theme==="light"?"active":"")+'" onclick="BTHApp.setTheme(\'light\')">Light</button><button class="'+(theme==="dark"?"active":"")+'" onclick="BTHApp.setTheme(\'dark\')">Dark</button></div></div>';
+    html += '<div class="app-card"><div class="settings-row"><div><div class="app-card-title">Reduce motion</div><div class="app-muted">Kills cold-open motion, quick cuts, glows, and smooth scroll.</div></div><button class="toggle-btn '+(motion?'active':'')+'" aria-pressed="'+(motion?'true':'false')+'" onclick="BTHApp.setReduceMotion('+(!motion)+')">'+(motion?'On':'Off')+'</button></div></div>';
+    html += '<div class="app-card"><div class="app-card-title">Personal setup</div><div class="app-copy">Run the walkthrough and intake again any time.</div><button class="btn-secondary" onclick="BTHApp.resetOnboarding()">Run setup again</button></div>';
+    html += '<div class="app-card"><div class="app-card-title">Local state</div><div class="app-muted">Theme, intake, seen updates, reminders, and training progress are stored on this device only. Active training days use an operator-day id so a midnight rollover does not wipe a session.</div></div>';
+    if (state.affiliateInterest || (state.notifyMe || []).length) {
+      html += '<div class="app-card"><div class="app-card-title">Saved interest</div><div class="app-muted">'+(state.affiliateInterest?'Affiliate interest saved locally. ':'')+((state.notifyMe||[]).length?state.notifyMe.length+' drop notify request(s) saved locally.':'')+'</div></div>';
+    }
+    return html;
   }
 
   function renderAccount(mode){
@@ -400,15 +806,20 @@
 
   function renderBthApp(){
     ensureAppShell();
+    applyAppPrefs();
     document.body.classList.remove("mode-free","mode-member","mode-owner");
     var mode = getMode();
     document.body.classList.add("mode-" + mode);
     var root = document.getElementById("bth-app-root");
+    if (currentScreen === "updates") markUpdatesSeen();
     renderNav(mode);
     if (currentScreen === "owner" && mode !== "owner") currentScreen = "account";
-    if (currentScreen === "home") root.innerHTML = renderHome(mode);
+    if (shouldShowOnboarding()) root.innerHTML = renderOnboarding(mode);
+    else if (currentScreen === "home") root.innerHTML = renderHome(mode);
     else if (currentScreen === "reset") root.innerHTML = renderReset();
     else if (currentScreen === "library") root.innerHTML = renderLibrary(mode);
+    else if (currentScreen === "updates") root.innerHTML = renderUpdates();
+    else if (currentScreen === "settings") root.innerHTML = renderSettings();
     else root.innerHTML = renderAccount(mode);
   }
 
@@ -476,9 +887,57 @@
     renderBthApp();
   }
 
-  function finishOnboarding(){
+  function nextTour(){
+    if (tourIndex < ONBOARDING_STEPS.length - 1) {
+      tourIndex += 1;
+      renderBthApp();
+      return;
+    }
+    appSave("bth_intro_done", true);
+    intakeIndex = 0;
+    renderBthApp();
+  }
+
+  function skipOnboarding(){
+    appSave("bth_intro_done", true);
+    appSave("bth_onboarding_complete", true);
     appSave("bth_onboarding_done", true);
-    currentScreen = "library";
+    currentScreen = "home";
+    renderBthApp();
+  }
+
+  function saveTextAnswer(){
+    var question = INTAKE_QUESTIONS[intakeIndex] || INTAKE_QUESTIONS[0];
+    var input = document.getElementById("intake-input");
+    var state = getAppState();
+    state.intake = state.intake || {};
+    state.intake[question.id] = (input && input.value || "").trim();
+    saveAppState(state);
+    nextIntake();
+  }
+
+  function saveChoiceAnswer(id, value){
+    var state = getAppState();
+    state.intake = state.intake || {};
+    state.intake[id] = value;
+    saveAppState(state);
+    nextIntake();
+  }
+
+  function nextIntake(){
+    if (intakeIndex < INTAKE_QUESTIONS.length - 1) {
+      intakeIndex += 1;
+      renderBthApp();
+      return;
+    }
+    finishOnboarding();
+  }
+
+  function finishOnboarding(){
+    appSave("bth_intro_done", true);
+    appSave("bth_onboarding_complete", true);
+    appSave("bth_onboarding_done", true);
+    currentScreen = "home";
     renderBthApp();
   }
 
@@ -499,7 +958,12 @@
 
   function initBthApp(){
     ensureAppShell();
+    applyAppPrefs();
     renderBthApp();
+    loadContent();
+    registerServiceWorker();
+    startReminderLoop();
+    window.setTimeout(showColdOpen, 80);
   }
 
   window.BTHApp = {
@@ -508,6 +972,17 @@
     unlockOwner:unlockOwner,
     clearMember:clearMember,
     finishOnboarding:finishOnboarding,
+    nextTour:nextTour,
+    skipOnboarding:skipOnboarding,
+    saveTextAnswer:saveTextAnswer,
+    saveChoiceAnswer:saveChoiceAnswer,
+    resetOnboarding:resetOnboarding,
+    setTheme:setTheme,
+    setReduceMotion:setReduceMotion,
+    requestNotifications:requestNotificationPermission,
+    setLibrarySearch:setLibrarySearch,
+    jumpDay:jumpDay,
+    toggleDayDone:toggleDayDone,
     openOwner:openOwnerTools,
     closeOwner:closeOwnerTools,
     gaps:CONTENT_GAPS,

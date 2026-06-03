@@ -348,3 +348,464 @@ body.owner-tools-open #bth-owner-exit {
     grid-template-columns: 1fr 1fr;
   }
 }
+
+body.theme-light {
+  --app-bg: #f7f1e8;
+  --app-surface: #fffaf1;
+  --app-elevated: #ffffff;
+  --app-ink: #111318;
+  --app-muted: #67645f;
+  --app-border: #ded4c3;
+  --app-gold: #e6a800;
+  --app-gold-soft: rgba(230, 168, 0, .13);
+  --app-green: #167448;
+  --app-red: #b7382f;
+  --app-nav: #151515;
+}
+
+body.theme-dark {
+  --app-bg: #12100d;
+  --app-surface: #1a1712;
+  --app-elevated: #221e18;
+  --app-ink: #f7f1e8;
+  --app-muted: #b9b0a2;
+  --app-border: #3a3124;
+  --app-gold: #e6a800;
+  --app-gold-soft: rgba(230, 168, 0, .16);
+  --app-green: #62c98e;
+  --app-red: #f07b6e;
+  --app-nav: #0b0a08;
+}
+
+#bth-app-root {
+  background: var(--app-bg);
+  color: var(--app-ink);
+  scroll-behavior: smooth;
+}
+
+#bth-app-nav {
+  background: var(--app-nav);
+  border-top: 1px solid rgba(230, 168, 0, .22);
+}
+
+.app-nav-btn {
+  min-width: 0;
+}
+
+.app-nav-icon {
+  display: inline-flex;
+  min-width: 24px;
+  height: 24px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  font-family: "Space Mono", monospace;
+  font-size: 10px;
+  line-height: 1;
+}
+
+.app-nav-icon.has-badge {
+  background: var(--app-gold);
+  color: #111318;
+}
+
+.app-nav-btn.active .app-nav-icon {
+  background: rgba(230, 168, 0, .14);
+}
+
+.app-hero {
+  background: #111318;
+  border: 1px solid rgba(230, 168, 0, .28);
+  border-radius: 12px;
+  animation: appCut .22s ease both;
+}
+
+body.theme-dark .app-hero {
+  background: #070706;
+  box-shadow: 0 18px 42px rgba(0, 0, 0, .28);
+}
+
+.app-hero-title {
+  letter-spacing: 0;
+}
+
+.app-card,
+.day-block,
+.week-block {
+  background: var(--app-elevated);
+  border-color: var(--app-border);
+  color: var(--app-ink);
+  border-radius: 8px;
+  animation: appCardIn .2s ease both;
+}
+
+.app-card-title,
+.day-title,
+.exercise-name,
+.app-copy,
+.gap-item {
+  color: var(--app-ink);
+}
+
+.app-muted,
+.app-card-meta {
+  color: var(--app-muted);
+}
+
+.mode-chip,
+.reset-day-number,
+.exercise-dose,
+.program-phase {
+  color: var(--app-gold);
+}
+
+.mode-chip,
+.locked-panel {
+  border-color: rgba(230, 168, 0, .58);
+  background: var(--app-gold-soft);
+}
+
+.app-input,
+.gap-item {
+  background: var(--app-surface);
+  border-color: var(--app-border);
+  color: var(--app-ink);
+}
+
+.app-input:focus,
+.app-nav-btn:focus-visible,
+.choice-chip:focus-visible,
+.segmented-control button:focus-visible,
+.toggle-btn:focus-visible,
+.program-jump button:focus-visible,
+.day-done-btn:focus-visible,
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--app-gold);
+  outline-offset: 3px;
+}
+
+.app-success {
+  color: var(--app-green);
+}
+
+.app-error {
+  color: var(--app-red);
+}
+
+.app-lift-card {
+  border-color: rgba(230, 168, 0, .38);
+  box-shadow: 0 12px 32px rgba(17, 19, 24, .1);
+}
+
+body.theme-dark .app-lift-card {
+  box-shadow: 0 18px 40px rgba(0, 0, 0, .25);
+}
+
+.why-rise .btn-primary,
+.app-card .btn-primary,
+.app-card .btn-secondary {
+  margin-top: 12px;
+}
+
+.why-rise a {
+  display: block;
+  text-align: center;
+  text-decoration: none;
+}
+
+.button-badge {
+  display: inline-flex;
+  min-width: 18px;
+  height: 18px;
+  align-items: center;
+  justify-content: center;
+  margin-left: 6px;
+  border-radius: 999px;
+  background: var(--app-gold);
+  color: #111318;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.update-tease {
+  display: grid;
+  gap: 2px;
+  padding: 10px 0;
+  border-top: 1px solid var(--app-border);
+}
+
+.update-tease:first-of-type {
+  border-top: 0;
+}
+
+.update-tease span {
+  color: var(--app-gold);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .7px;
+  text-transform: uppercase;
+}
+
+.update-card.pinned {
+  border-color: rgba(230, 168, 0, .5);
+}
+
+.onboarding-shell .app-hero {
+  margin-bottom: 12px;
+}
+
+.cinematic-card .app-card-title {
+  font-size: 23px;
+  line-height: 1.15;
+}
+
+.tour-progress {
+  display: flex;
+  gap: 6px;
+  margin: 18px 0 14px;
+}
+
+.tour-progress span {
+  flex: 1;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--app-border);
+}
+
+.tour-progress span.active {
+  background: var(--app-gold);
+}
+
+.choice-grid {
+  display: grid;
+  gap: 8px;
+  margin: 14px 0;
+}
+
+.choice-chip,
+.segmented-control button,
+.toggle-btn,
+.program-jump button,
+.day-done-btn {
+  border: 1px solid var(--app-border);
+  background: var(--app-surface);
+  color: var(--app-ink);
+  border-radius: 8px;
+  padding: 11px 12px;
+  font: 800 12px "DM Sans", sans-serif;
+  cursor: pointer;
+}
+
+.choice-chip.active,
+.segmented-control button.active,
+.toggle-btn.active {
+  background: var(--app-gold);
+  border-color: var(--app-gold);
+  color: #111318;
+}
+
+.segmented-control {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.settings-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 14px;
+  align-items: center;
+}
+
+.toggle-btn {
+  min-width: 64px;
+}
+
+.train-control {
+  position: sticky;
+  top: calc(var(--st) + 6px);
+  z-index: 4;
+}
+
+.program-jump {
+  position: sticky;
+  top: calc(var(--st) + 88px);
+  z-index: 3;
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 8px 0;
+  background: var(--app-bg);
+  border-bottom: 1px solid var(--app-border);
+}
+
+.program-jump button {
+  flex: 0 0 auto;
+  min-width: 54px;
+  padding: 8px 10px;
+}
+
+.week-block {
+  padding: 12px;
+  margin: 10px 0;
+}
+
+details.day-block {
+  padding: 0;
+  overflow: hidden;
+}
+
+details.day-block > summary {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: center;
+  padding: 12px;
+  list-style: none;
+  cursor: pointer;
+}
+
+details.day-block > summary::-webkit-details-marker {
+  display: none;
+}
+
+details.day-block > .app-muted,
+details.day-block > .exercise-line,
+details.day-block > .locked-panel {
+  margin-left: 12px;
+  margin-right: 12px;
+}
+
+details.day-block > .locked-panel {
+  margin-bottom: 12px;
+}
+
+.day-done {
+  border-color: rgba(22, 116, 72, .5);
+  box-shadow: inset 3px 0 0 var(--app-green);
+}
+
+.day-done-btn {
+  min-width: 88px;
+  padding: 8px 10px;
+  color: var(--app-gold);
+}
+
+.day-done .day-done-btn {
+  background: rgba(22, 116, 72, .12);
+  color: var(--app-green);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+#bth-cold-open {
+  position: fixed;
+  inset: 0;
+  z-index: 5000;
+  display: grid;
+  place-content: center;
+  gap: 8px;
+  background: #111318;
+  color: #f7f1e8;
+  text-align: center;
+  animation: coldIn .22s ease both;
+}
+
+#bth-cold-open.done {
+  animation: coldOut .22s ease both;
+}
+
+.cold-mark,
+.cold-line {
+  font-family: "Oswald", sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0;
+}
+
+.cold-mark {
+  font-size: clamp(38px, 13vw, 72px);
+  line-height: .92;
+}
+
+.cold-line {
+  color: var(--app-gold);
+  font-size: clamp(24px, 8vw, 42px);
+}
+
+.cold-skip {
+  position: fixed;
+  top: calc(var(--st) + 14px);
+  right: 14px;
+  width: auto;
+  padding: 8px 11px;
+  border: 1px solid rgba(230, 168, 0, .45);
+  border-radius: 999px;
+  background: rgba(230, 168, 0, .1);
+  color: #f7f1e8;
+  font: 800 10px "DM Sans", sans-serif;
+  text-transform: uppercase;
+  letter-spacing: .7px;
+}
+
+@keyframes appCut {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes appCardIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes coldIn {
+  from { opacity: 0; transform: scale(1.012); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes coldOut {
+  to { opacity: 0; transform: scale(.992); }
+}
+
+body.reduce-motion *,
+body.reduce-motion *::before,
+body.reduce-motion *::after {
+  scroll-behavior: auto !important;
+  animation: none !important;
+  transition: none !important;
+}
+
+body.reduce-motion #bth-cold-open {
+  display: none !important;
+}
+
+@media (max-width: 420px) {
+  .app-nav-label {
+    font-size: 8px;
+  }
+
+  .app-nav-icon {
+    min-width: 22px;
+    height: 22px;
+    font-size: 9px;
+  }
+
+  details.day-block > summary {
+    grid-template-columns: 1fr;
+  }
+
+  .day-done-btn {
+    width: 100%;
+  }
+}

@@ -1,0 +1,37 @@
+[
+  {
+    "id": "graffiti-court-bone",
+    "name": "Graffiti Court Short - Bone",
+    "img": "assets/products/shorts-01.png",
+    "blurb": "Rebuild your game. Move better. Court ready. Hand-drawn, gold-and-black.",
+    "status": "coming-soon"
+  },
+  {
+    "id": "blueprint-black-gold",
+    "name": "Blueprint Short - Black/Gold",
+    "img": "assets/products/shorts-02.png",
+    "blurb": "The court, mapped in gold. Built to Hoop. Stay Ready.",
+    "status": "coming-soon"
+  },
+  {
+    "id": "minimal-elite-black-gold",
+    "name": "Minimal Elite Short - Black/Gold",
+    "img": "assets/products/shorts-03.png",
+    "blurb": "Clean side stripe, gold piping, collegiate mark. Built to Hoop Performance.",
+    "status": "coming-soon"
+  },
+  {
+    "id": "recover-grey",
+    "name": "Recover Short - Grey",
+    "img": "assets/products/shorts-04.png",
+    "blurb": "Topographic flow lines. Recover. Move Better. For the days between battles.",
+    "status": "coming-soon"
+  },
+  {
+    "id": "no-random-training-black-bone",
+    "name": "No Random Training Short - Black/Bone",
+    "img": "assets/products/shorts-05.png",
+    "blurb": "Two-tone, gold-bordered. No random training. Court ready.",
+    "status": "coming-soon"
+  }
+]

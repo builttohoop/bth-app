@@ -1,0 +1,18 @@
+[
+  {
+    "id": "welcome-home",
+    "date": "2026-06-03",
+    "title": "The app is live",
+    "body": "BTH now has a home. Free reset, member unlock, and the library all run through the app.",
+    "tag": "App",
+    "pinned": true
+  },
+  {
+    "id": "p1-build",
+    "date": "2026-06-03",
+    "title": "Coming next: your personal setup",
+    "body": "Dark mode, a first-run walkthrough, intake questions, and a cleaner Home are being built into the app.",
+    "tag": "Update",
+    "pinned": false
+  }
+]

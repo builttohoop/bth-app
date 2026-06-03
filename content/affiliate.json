@@ -1,0 +1,11 @@
+{
+  "headline": "Put people on. Get paid.",
+  "body": "Know a hooper who needs this? Send them in. You earn $10 for every paid membership you bring - and when you hit 10, that's an extra $50 on top. Ten paid = $150.",
+  "terms": {
+    "perReferral": 10,
+    "bonus": 50,
+    "bonusAt": 10
+  },
+  "ctaLabel": "Join the affiliate program",
+  "formUrl": ""
+}
